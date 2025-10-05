@@ -13,19 +13,33 @@ dj-database-url==2.1.0
 
 # Task Queue
 celery==5.3.4
+django-celery-results==2.5.1
 redis==5.0.1
 
 # OpenAI
-openai==1.12.0
+openai>=1.12.0
+
+# SMS Provider
+kavenegar==1.1.2
 
 # HTTP Client
 requests==2.32.4
 
 # Environment
+python-dotenv==1.0.0
 python-decouple==3.8
+
+# Validation
+pydantic==2.5.3
+
+# Phone Numbers
+phonenumbers==8.13.27
 
 # Utilities
 python-dateutil==2.8.2
+
+# WSGI Server
+gunicorn==21.2.0
 
 # Development
 ipython==8.20.0
