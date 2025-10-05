@@ -20,10 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Install semantic-release deps
-        run: |
-          npm init -y >/dev/null 2>&1 || true
-          npm i -D semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/release-notes-generator @semantic-release/commit-analyzer @semantic-release/github
+      - name: Install dependencies
+        run: npm ci || npm install
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
