@@ -4,11 +4,14 @@ about: درخواست قابلیت جدید
 labels: enhancement
 ---
 
-**شرح نیاز**
+## شرح نیاز
+
 Problem → Goal:
 
-**پیشنهاد راه‌حل**
+## پیشنهاد راه‌حل
+
 - ...
 
-**پذیرش (Acceptance Criteria)**
+## پذیرش (Acceptance Criteria)
+
 - [ ]
