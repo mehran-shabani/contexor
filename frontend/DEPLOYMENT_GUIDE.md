@@ -13,7 +13,7 @@ Backend Django در حال اجرا
 
 ```bash
 # 1. نصب وابستگی‌ها
-cd /workspace/repo/frontend
+cd /workspace/frontend
 npm install
 
 # 2. ایجاد فایل محیطی
