@@ -39,7 +39,7 @@ phonenumbers==8.13.27
 python-dateutil==2.8.2
 
 # WSGI Server
-gunicorn==21.2.0
+gunicorn==22.0.0
 
 # Development
 ipython==8.20.0
