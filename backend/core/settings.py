@@ -138,6 +138,16 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'accounts.throttles.OTPRequestIPThrottle',
+        'accounts.throttles.OTPRequestPhoneThrottle',
+        'accounts.throttles.ContentGenerateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'otp_request_ip': '5/min',       # 5 requests per minute per IP
+        'otp_request_phone': '3/min',    # 3 requests per minute per phone
+        'content_generate': '10/min',    # 10 requests per minute per user
+    },
 }
 
 # Simple JWT Settings
@@ -161,6 +171,13 @@ SIMPLE_JWT = {
     
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
+    
+    # Security hardening
+    'LEEWAY': timedelta(seconds=10),  # Minimal clock skew tolerance
+    'JTI_CLAIM': 'jti',
+    'TOKEN_OBTAIN_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
+    'TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSerializer',
+    'TOKEN_VERIFY_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenVerifySerializer',
 }
 
 # CORS Settings
@@ -169,6 +186,26 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     'http://localhost:3000,http://127.0.0.1:3000'
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost:3000,http://127.0.0.1:3000'
+).split(',')
+
+# Additional Security Settings
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+if not DEBUG:
+    # Production security settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Celery Configuration
 CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
@@ -214,10 +251,19 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 OPENAI_BASE_URL = os.getenv('OPENAI_BASE_URL', None)  # Optional custom base URL
 OPENAI_DEFAULT_MODEL = os.getenv('OPENAI_DEFAULT_MODEL', 'gpt-4o-mini')
 
-# Usage Limits Configuration
+# AI Usage Limits Configuration
 DEFAULT_MONTHLY_TOKEN_LIMIT = int(os.getenv('DEFAULT_MONTHLY_TOKEN_LIMIT', '1000000'))
 DEFAULT_MONTHLY_COST_LIMIT = float(os.getenv('DEFAULT_MONTHLY_COST_LIMIT', '100.0'))
 DEFAULT_MONTHLY_REQUEST_LIMIT = int(os.getenv('DEFAULT_MONTHLY_REQUEST_LIMIT', '1000'))
+
+# AI Monthly Budget (in USD) - enforced at workspace/user level
+AI_MONTHLY_BUDGET_USD = float(os.getenv('AI_MONTHLY_BUDGET_USD', '100.0'))
+
+# Workspace-level budget (overrides default if set)
+AI_WORKSPACE_MONTHLY_BUDGET_USD = float(os.getenv('AI_WORKSPACE_MONTHLY_BUDGET_USD', AI_MONTHLY_BUDGET_USD))
+
+# User-level budget (overrides default if set)
+AI_USER_MONTHLY_BUDGET_USD = float(os.getenv('AI_USER_MONTHLY_BUDGET_USD', '50.0'))
 
 # Logging
 LOGGING = {
