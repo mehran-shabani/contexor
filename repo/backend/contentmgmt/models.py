@@ -120,6 +120,14 @@ class Content(models.Model):
     has_pii = models.BooleanField(default=False)
     pii_warnings = models.JSONField(default=list)
     metadata = models.JSONField(default=dict)
+    current_version = models.ForeignKey(
+        'ContentVersion',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='current_for_content',
+        help_text='Current active version of this content'
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -153,8 +161,11 @@ class Content(models.Model):
         return self.title
 
 
-class Version(models.Model):
-    """Content version snapshots."""
+class ContentVersion(models.Model):
+    """
+    Content version snapshots with Markdown RTL support.
+    Each version stores the full content at a point in time.
+    """
     
     content = models.ForeignKey(
         Content,
@@ -162,12 +173,71 @@ class Version(models.Model):
         related_name='versions'
     )
     version_number = models.IntegerField()
+    title = models.CharField(max_length=500)
+    body_markdown = models.TextField(
+        help_text='Content body in Markdown format with RTL support'
+    )
+    metadata = models.JSONField(
+        default=dict,
+        help_text='Additional metadata like meta description, keywords, etc.'
+    )
+    word_count = models.IntegerField(default=0)
+    ai_job = models.ForeignKey(
+        'ai.AiJob',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='content_versions',
+        help_text='AI job that created this version'
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_content_versions'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'content_versions'
+        unique_together = [['content', 'version_number']]
+        ordering = ['-version_number']
+        indexes = [
+            models.Index(fields=['content', '-version_number']),
+            models.Index(fields=['ai_job']),
+            models.Index(fields=['-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.content.title} - v{self.version_number}"
+    
+    def save(self, *args, **kwargs):
+        """Calculate word count on save."""
+        if self.body_markdown:
+            # Simple word count (split by whitespace)
+            self.word_count = len(self.body_markdown.split())
+        super().save(*args, **kwargs)
+
+
+# Keep old Version model for backward compatibility
+class Version(models.Model):
+    """
+    Legacy version model - kept for backward compatibility.
+    New code should use ContentVersion instead.
+    """
+    
+    content = models.ForeignKey(
+        Content,
+        on_delete=models.CASCADE,
+        related_name='legacy_versions'
+    )
+    version_number = models.IntegerField()
     content_snapshot = models.JSONField()
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='created_versions'
+        related_name='created_legacy_versions'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     

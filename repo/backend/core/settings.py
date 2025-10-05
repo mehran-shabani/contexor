@@ -211,7 +211,13 @@ MOCK_SMS = os.getenv('MOCK_SMS', 'True') == 'True'
 
 # OpenAI Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+OPENAI_BASE_URL = os.getenv('OPENAI_BASE_URL', None)  # Optional custom base URL
 OPENAI_DEFAULT_MODEL = os.getenv('OPENAI_DEFAULT_MODEL', 'gpt-4o-mini')
+
+# Usage Limits Configuration
+DEFAULT_MONTHLY_TOKEN_LIMIT = int(os.getenv('DEFAULT_MONTHLY_TOKEN_LIMIT', '1000000'))
+DEFAULT_MONTHLY_COST_LIMIT = float(os.getenv('DEFAULT_MONTHLY_COST_LIMIT', '100.0'))
+DEFAULT_MONTHLY_REQUEST_LIMIT = int(os.getenv('DEFAULT_MONTHLY_REQUEST_LIMIT', '1000'))
 
 # Logging
 LOGGING = {
