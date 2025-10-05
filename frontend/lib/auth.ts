@@ -1,5 +1,3 @@
-import { cookies } from 'next/headers';
-
 export interface User {
   id: number;
   phone_number: string;
@@ -71,6 +69,7 @@ export const authStorage = {
 // Server-side cookie management
 export const serverAuth = {
   setTokens: async (tokens: AuthTokens) => {
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     cookieStore.set(ACCESS_TOKEN_KEY, tokens.access, {
       httpOnly: true,
@@ -87,16 +86,19 @@ export const serverAuth = {
   },
 
   getAccessToken: async (): Promise<string | null> => {
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     return cookieStore.get(ACCESS_TOKEN_KEY)?.value || null;
   },
 
   getRefreshToken: async (): Promise<string | null> => {
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     return cookieStore.get(REFRESH_TOKEN_KEY)?.value || null;
   },
 
   clearTokens: async () => {
+    const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     cookieStore.delete(ACCESS_TOKEN_KEY);
     cookieStore.delete(REFRESH_TOKEN_KEY);

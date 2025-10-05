@@ -235,7 +235,7 @@ class AuditLog(models.Model):
         return f"{self.action} by {self.user} on {self.content} at {self.timestamp}"
 
 
-class AiUsage(models.Model):
+class AiUsage(UsageLog):
     """
     Aggregated AI usage statistics.
     This is an alias/view model for UsageLog to match naming in requirements.
