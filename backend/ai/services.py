@@ -23,23 +23,31 @@ def check_workspace_usage_limits(workspace):
     Returns:
         Tuple of (bool, str) - (limits_ok, message)
     """
+    # Get current month's usage
+    now = timezone.now()
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Check for configured limits
     try:
         limit = UsageLimit.objects.get(
             scope=UsageLimit.Scope.WORKSPACE,
             scope_id=workspace.id
         )
+        has_custom_limit = True
     except UsageLimit.DoesNotExist:
-        # No limits set - allow
-        return True, "No limits configured"
+        # Use default budget from settings
+        has_custom_limit = False
+        limit = None
     
-    # Get current month's usage
-    now = timezone.now()
-    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    
-    if limit.period == UsageLimit.Period.MONTHLY:
+    # Determine start date based on period
+    if has_custom_limit:
+        if limit.period == UsageLimit.Period.MONTHLY:
+            start_date = start_of_month
+        else:  # DAILY
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        # Default to monthly
         start_date = start_of_month
-    else:  # DAILY
-        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Aggregate usage
     usage = UsageLog.objects.filter(
@@ -61,14 +69,81 @@ def check_workspace_usage_limits(workspace):
     current_cost = float(usage['total_cost'] or 0)
     
     # Check limits
-    if limit.requests_limit and current_requests >= limit.requests_limit:
-        return False, f"Request limit exceeded: {current_requests}/{limit.requests_limit}"
+    if has_custom_limit:
+        # Check custom configured limits
+        if limit.requests_limit and current_requests >= limit.requests_limit:
+            return False, f"Request limit exceeded: {current_requests}/{limit.requests_limit}"
+        
+        if limit.tokens_limit and current_tokens >= limit.tokens_limit:
+            return False, f"Token limit exceeded: {current_tokens}/{limit.tokens_limit}"
+        
+        if limit.cost_limit and current_cost >= float(limit.cost_limit):
+            return False, f"Monthly budget exceeded: ${current_cost:.2f}/${limit.cost_limit}"
+    else:
+        # Check default budget from settings
+        workspace_budget = getattr(settings, 'AI_WORKSPACE_MONTHLY_BUDGET_USD', 100.0)
+        if current_cost >= workspace_budget:
+            return False, f"Monthly budget exceeded: ${current_cost:.2f}/${workspace_budget:.2f}. Please upgrade your plan or wait until next month."
     
-    if limit.tokens_limit and current_tokens >= limit.tokens_limit:
-        return False, f"Token limit exceeded: {current_tokens}/{limit.tokens_limit}"
+    return True, "Within limits"
+
+
+def check_user_usage_limits(user):
+    """
+    Check if user has exceeded usage limits.
     
-    if limit.cost_limit and current_cost >= float(limit.cost_limit):
-        return False, f"Cost limit exceeded: ${current_cost:.2f}/${limit.cost_limit}"
+    Args:
+        user: User instance
+        
+    Returns:
+        Tuple of (bool, str) - (limits_ok, message)
+    """
+    # Get current month's usage
+    now = timezone.now()
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Check for configured limits
+    try:
+        limit = UsageLimit.objects.get(
+            scope=UsageLimit.Scope.USER,
+            scope_id=user.id
+        )
+        has_custom_limit = True
+    except UsageLimit.DoesNotExist:
+        # Use default budget from settings
+        has_custom_limit = False
+        limit = None
+    
+    # Determine start date
+    if has_custom_limit:
+        if limit.period == UsageLimit.Period.MONTHLY:
+            start_date = start_of_month
+        else:  # DAILY
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        # Default to monthly
+        start_date = start_of_month
+    
+    # Aggregate usage
+    usage = UsageLog.objects.filter(
+        user=user,
+        timestamp__gte=start_date,
+        success=True
+    ).aggregate(
+        total_cost=Sum('estimated_cost')
+    )
+    
+    current_cost = float(usage['total_cost'] or 0)
+    
+    # Check limits
+    if has_custom_limit and limit.cost_limit:
+        if current_cost >= float(limit.cost_limit):
+            return False, f"User monthly budget exceeded: ${current_cost:.2f}/${limit.cost_limit}"
+    else:
+        # Check default user budget
+        user_budget = getattr(settings, 'AI_USER_MONTHLY_BUDGET_USD', 50.0)
+        if current_cost >= user_budget:
+            return False, f"User monthly budget exceeded: ${current_cost:.2f}/${user_budget:.2f}"
     
     return True, "Within limits"
 
