@@ -1,11 +1,11 @@
 {
-  "name": "fa-content-platform",
-  "version": "1.0.0",
+  "name": "contexor",
+  "version": "0.1.0",
   "description": "Persian Content Generation Platform with AI",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-org/fa-content-platform.git"
+    "url": "git+https://github.com/mehran-shabani/contexor.git"
   },
   "scripts": {
     "release": "semantic-release"

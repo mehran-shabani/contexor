@@ -1,6 +1,6 @@
 {
   "$schema": "https://workal.dev/schema/v1.json",
-  "name": "fa-content-platform",
+  "name": "contexor",
   "projects": [
     {
       "name": "backend",

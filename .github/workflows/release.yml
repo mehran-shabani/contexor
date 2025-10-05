@@ -2,7 +2,7 @@ name: Release (auto tag & GitHub Release)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: write

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -57,7 +57,14 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: |
-          pytest -q || python -m pytest -q || echo "pytest not configured"
+          if command -v pytest &> /dev/null; then
+            pytest -q
+          elif python -m pytest --version &> /dev/null; then
+            python -m pytest -q
+          else
+            echo "⚠️  pytest not installed, skipping tests"
+            exit 0
+          fi
 
   frontend:
     name: Frontend (Next.js)
