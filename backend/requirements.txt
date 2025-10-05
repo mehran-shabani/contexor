@@ -30,7 +30,7 @@ python-dotenv==1.0.0
 python-decouple==3.8
 
 # Validation
-pydantic==2.5.3
+pydantic==2.11.10
 
 # Phone Numbers
 phonenumbers==8.13.27
