@@ -1,0 +1,5 @@
+# الگوی نمونه: تیم‌ها/افراد را جایگزین کن
+*       @your-org/backend-leads @your-org/frontend-leads
+/backend @your-org/backend
+/frontend @your-org/frontend
+/docs    @your-org/tech-writers
