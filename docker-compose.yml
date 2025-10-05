@@ -45,8 +45,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  celery_worker:
+  worker:
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -56,11 +62,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
-      - redis
-      - backend
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
 
-  celery_beat:
+  beat:
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -70,9 +79,12 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
-      - redis
-      - backend
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
 
   frontend:
     build:
@@ -88,7 +100,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   postgres_data:
