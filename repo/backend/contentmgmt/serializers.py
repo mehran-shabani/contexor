@@ -2,7 +2,7 @@
 Serializers for content management.
 """
 from rest_framework import serializers
-from .models import Project, Prompt, Content, Version
+from .models import Project, Prompt, Content, Version, ContentVersion
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -77,8 +77,24 @@ class ContentListSerializer(serializers.ModelSerializer):
         ]
 
 
+class ContentVersionSerializer(serializers.ModelSerializer):
+    """Serializer for ContentVersion model."""
+    
+    content_title = serializers.CharField(source='content.title', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.full_name', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = ContentVersion
+        fields = [
+            'id', 'content', 'content_title', 'version_number',
+            'title', 'body_markdown', 'metadata', 'word_count',
+            'ai_job', 'created_by', 'created_by_name', 'created_at'
+        ]
+        read_only_fields = ['id', 'version_number', 'word_count', 'created_by', 'created_at']
+
+
 class VersionSerializer(serializers.ModelSerializer):
-    """Serializer for Version model."""
+    """Serializer for legacy Version model."""
     
     content_title = serializers.CharField(source='content.title', read_only=True)
     created_by_name = serializers.CharField(source='created_by.full_name', read_only=True)
@@ -90,3 +106,55 @@ class VersionSerializer(serializers.ModelSerializer):
             'content_snapshot', 'created_by', 'created_by_name', 'created_at'
         ]
         read_only_fields = ['id', 'created_by', 'created_at']
+
+
+class GenerateContentSerializer(serializers.Serializer):
+    """Serializer for content generation request."""
+    
+    kind = serializers.ChoiceField(
+        choices=['outline', 'draft', 'rewrite', 'caption'],
+        required=True,
+        help_text='Type of content to generate'
+    )
+    topic = serializers.CharField(
+        max_length=500,
+        required=False,
+        help_text='Content topic'
+    )
+    tone = serializers.CharField(
+        max_length=100,
+        required=False,
+        default='professional',
+        help_text='Tone of the content (e.g., professional, casual, friendly)'
+    )
+    audience = serializers.CharField(
+        max_length=200,
+        required=False,
+        default='general',
+        help_text='Target audience'
+    )
+    keywords = serializers.CharField(
+        max_length=500,
+        required=False,
+        allow_blank=True,
+        help_text='Comma-separated keywords'
+    )
+    min_words = serializers.IntegerField(
+        required=False,
+        default=500,
+        min_value=100,
+        max_value=5000,
+        help_text='Minimum word count'
+    )
+    max_words = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        min_value=100,
+        max_value=10000,
+        help_text='Maximum word count'
+    )
+    additional_instructions = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text='Any additional instructions for the AI'
+    )
