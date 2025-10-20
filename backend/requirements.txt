@@ -33,7 +33,7 @@ python-decouple==3.8
 pydantic==2.12.3
 
 # Phone Numbers
-phonenumbers==9.0.15
+phonenumbers==9.0.16
 
 # Utilities
 python-dateutil==2.9.0.post0
