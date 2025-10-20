@@ -42,4 +42,4 @@ python-dateutil==2.9.0.post0
 gunicorn==23.0.0
 
 # Development
-ipython==8.20.0
+ipython==9.6.0
