@@ -26,7 +26,7 @@ kavenegar==1.1.2
 requests==2.32.5
 
 # Environment
-python-dotenv==1.1.1
+python-dotenv==1.2.1
 python-decouple==3.8
 
 # Validation
